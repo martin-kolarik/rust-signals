@@ -812,3 +812,78 @@ fn flatten_empty() {
         Poll::Ready(None),
     ]);
 }
+
+#[test]
+fn flatten_remove_immediate() {
+    let input = util::Source::new(vec![
+        Poll::Pending,
+        Poll::Ready(VecDiff::Push {
+            value: util::Source::new(vec![
+                Poll::Ready(VecDiff::Replace { values: vec![42] }),
+            ]),
+        }),
+        Poll::Ready(VecDiff::RemoveAt { index: 0 }),
+    ]);
+
+    let output = input.flatten();
+
+    util::assert_signal_vec_eq(output, vec![
+        Poll::Pending,
+        Poll::Ready(None),
+    ]);
+}
+
+#[test]
+fn flatten_remove_delayed() {
+    let input = util::Source::new(vec![
+        Poll::Pending,
+        Poll::Ready(VecDiff::Push {
+            value: util::Source::new(vec![
+                Poll::Ready(VecDiff::Replace { values: vec![42] }),
+            ]),
+        }),
+        Poll::Pending,
+        Poll::Ready(VecDiff::RemoveAt { index: 0 }),
+    ]);
+
+    let output = input.flatten();
+
+    util::assert_signal_vec_eq(output, vec![
+        Poll::Pending,
+        Poll::Ready(Some(VecDiff::InsertAt { index: 0, value: 42 })),
+        Poll::Ready(Some(VecDiff::RemoveAt { index: 0 })),
+        Poll::Ready(None),
+    ]);
+}
+
+#[test]
+fn flatten_update_inner() {
+    let input = util::Source::new(vec![
+        Poll::Pending,
+        Poll::Ready(VecDiff::Push {
+            value: util::Source::new(vec![Poll::Ready(VecDiff::Replace { values: vec![42] })]),
+        }),
+        Poll::Pending,
+        Poll::Ready(VecDiff::UpdateAt {
+            index: 0,
+            value: util::Source::new(vec![Poll::Ready(VecDiff::Replace { values: vec![43] })]),
+        }),
+    ]);
+
+    let output = input.flatten();
+
+    util::assert_signal_vec_eq(
+        output,
+        vec![
+            Poll::Pending,
+            // should the sequence be this...
+            Poll::Ready(Some(VecDiff::InsertAt { index: 0, value: 42 })),
+            Poll::Ready(Some(VecDiff::RemoveAt { index: 0 })),
+            Poll::Ready(Some(VecDiff::InsertAt { index: 0, value: 43 })),
+            // ...or this?
+            // Poll::Ready(Some(VecDiff::InsertAt { index: 0, value: 42 })),
+            // Poll::Ready(Some(VecDiff::UpdateAt { index: 0, value: 43 })),
+            Poll::Ready(None),
+        ],
+    );
+}
