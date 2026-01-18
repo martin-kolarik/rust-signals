@@ -814,7 +814,7 @@ mod mutable_btree_map {
 
         // TODO return Result ?
         #[inline]
-        pub fn lock_ref(&self) -> MutableBTreeMapLockRef<K, V> {
+        pub fn lock_ref(&self) -> MutableBTreeMapLockRef<'_, K, V> {
             MutableBTreeMapLockRef {
                 lock: self.0.read().unwrap(),
             }
@@ -822,7 +822,7 @@ mod mutable_btree_map {
 
         // TODO return Result ?
         #[inline]
-        pub fn lock_mut(&self) -> MutableBTreeMapLockMut<K, V> {
+        pub fn lock_mut(&self) -> MutableBTreeMapLockMut<'_, K, V> {
             MutableBTreeMapLockMut {
                 lock: self.0.write().unwrap(),
             }

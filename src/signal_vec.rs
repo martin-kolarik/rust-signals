@@ -3384,7 +3384,7 @@ mod mutable_vec {
 
         // TODO return Result ?
         #[inline]
-        pub fn lock_ref(&self) -> MutableVecLockRef<A> {
+        pub fn lock_ref(&self) -> MutableVecLockRef<'_, A> {
             MutableVecLockRef {
                 lock: self.0.read().unwrap(),
             }
@@ -3392,7 +3392,7 @@ mod mutable_vec {
 
         // TODO return Result ?
         #[inline]
-        pub fn lock_mut(&self) -> MutableVecLockMut<A> {
+        pub fn lock_mut(&self) -> MutableVecLockMut<'_, A> {
             MutableVecLockMut {
                 lock: self.0.write().unwrap(),
             }

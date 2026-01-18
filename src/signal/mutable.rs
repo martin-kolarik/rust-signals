@@ -172,7 +172,7 @@ pub struct ReadOnlyMutable<A>(Arc<MutableState<A>>);
 impl<A> ReadOnlyMutable<A> {
     // TODO return Result ?
     #[inline]
-    pub fn lock_ref(&self) -> MutableLockRef<A> {
+    pub fn lock_ref(&self) -> MutableLockRef<'_, A> {
         MutableLockRef {
             lock: self.0.lock.read().unwrap(),
         }
@@ -307,7 +307,7 @@ impl<A> Mutable<A> {
     // TODO lots of unit tests to verify that it only notifies when the object is mutated
     // TODO return Result ?
     // TODO should this inline ?
-    pub fn lock_mut(&self) -> MutableLockMut<A> {
+    pub fn lock_mut(&self) -> MutableLockMut<'_, A> {
         MutableLockMut {
             mutated: false,
             lock: self.state().lock.write().unwrap(),
